@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CoME 2026 Budget Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 700px;
+      margin: auto;
+      background-color: #f9f9f9;
+    }
+    h2 {
+      color: #333;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: 100px;
+      margin-left: 10px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    .result {
+      margin-top: 30px;
+      font-size: 1.1em;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .section {
+      margin-top: 25px;
+    }
+    .item {
+      margin-bottom: 8px;
+    }
+    .great-deal {
+      color: green;
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+    .warning {
+      color: red;
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+    .currency-controls {
+      background-color: #e6f7ff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .currency-note {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 5px;
+    }
+    .symbol {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Workshop Budget Calculator</h2>
+<p>by sishuo wang</p>
+
+<div class="currency-controls">
+  <label>Exchange Rate (1 HKD = ?): 
+    <input type="number" id="exchangeRate" value="1" step="0.0001" min="0" onchange="updateCurrency()">
+  </label>
+  <div class="currency-note">Default currency: HKD. Enter exchange rate to convert all values (e.g., 0.12 for EUR, 0.13 for USD, 0.89 for RMB, for your reference).</div>
+</div>
+
+<div class="section">
+  <label>Flight ticket: <input type="number" id="flightTicket" value="10000"></label>
+  <label>Instructors: <input type="number" id="staffCount" value="17"></label>
+  <label>Replaced by local instructors: <input type="number" id="no_replaced" value="2"></label>
+  <label>Students: <input type="number" id="studentCount" value="35"></label>
+  <label>Accommodation Rate (per instructor per night, breakfast included): <input type="number" id="accommodationRate" value="300"></label>
+  <label>Instructors staying for half the workshop: <input type="number" id="staffHalfCount" value="0"></label>
+  <label>Shuttle bus rate per day: <input type="number" id="shuttleRate" value="1800"></label>
+  <label>No. of nights: <input type="number" id="nights" value="11"></label>
+  <label>Catering rate (per person/meal): <input type="number" id="cateringRate" value="100"></label>
+  <label>No. of meals per day: <input type="number" id="mealNo" value="2"></label>
+  <label>Local Transport (per instructor): <input type="number" id="localTransportRate" value="350"></label>
+  <label>Excursion: <input type="number" id="excursionFee" value="20000"></label>
+  <label>Consumables and others: <input type="number" id="consumableFee" value="3000"></label>
+  <label>
+    Registration Fee (accommodation excluded):
+    <input type="number" id="registrationFee" value="2500" style="color: red;">
+  </label>
+</div>
+
+<button onclick="calculateBudget()">Calculate Budget</button>
+
+<div class="result" id="output"></div>
+
+<script>
+  // Original HKD default values
+  const originalDefaults = {
+    flightTicket: 10000,
+    accommodationRate: 300,
+    shuttleRate: 1800,
+    cateringRate: 100,
+    localTransportRate: 350,
+    excursionFee: 20000,
+    consumableFee: 3000,
+    registrationFee: 2500
+  };
+  
+  let currentRate = 1;
+  
+  function updateCurrency() {
+    const exchangeRateInput = document.getElementById('exchangeRate');
+    const newRate = Number(exchangeRateInput.value);
+    
+    if (newRate > 0) {
+      currentRate = newRate;
+      
+      // Update all input fields with converted values (original × rate)
+      document.getElementById('flightTicket').value = Math.round(originalDefaults.flightTicket * currentRate * 100) / 100;
+      document.getElementById('accommodationRate').value = Math.round(originalDefaults.accommodationRate * currentRate * 100) / 100;
+      document.getElementById('shuttleRate').value = Math.round(originalDefaults.shuttleRate * currentRate * 100) / 100;
+      document.getElementById('cateringRate').value = Math.round(originalDefaults.cateringRate * currentRate * 100) / 100;
+      document.getElementById('localTransportRate').value = Math.round(originalDefaults.localTransportRate * currentRate * 100) / 100;
+      document.getElementById('excursionFee').value = Math.round(originalDefaults.excursionFee * currentRate * 100) / 100;
+      document.getElementById('consumableFee').value = Math.round(originalDefaults.consumableFee * currentRate * 100) / 100;
+      document.getElementById('registrationFee').value = Math.round(originalDefaults.registrationFee * currentRate * 100) / 100;
+      
+      // Update all default value displays
+      for (const [key, value] of Object.entries(originalDefaults)) {
+        const convertedValue = Math.round(value * currentRate * 100) / 100;
+        document.getElementById(`default${key.charAt(0).toUpperCase() + key.slice(1)}`).textContent = convertedValue;
+      }
+      
+      // Update currency symbol in defaults display
+      const symbols = document.querySelectorAll('.symbol');
+      symbols.forEach(el => {
+        el.textContent = currentRate === 1 ? 'HK$' : '';
+      });
+      
+      // Recalculate budget
+      calculateBudget();
+    }
+  }
+  
+  function calculateBudget() {
+    const formatCurrency = (value) => {
+      if (currentRate === 1) {
+        return `HK$${value.toLocaleString()}`;
+      } else {
+        // For display, we show the values as they are (already converted)
+        return `${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      }
+    };
+
+    // Get current input values (already in target currency)
+    const flightTicket = Number(document.getElementById('flightTicket').value);
+    const staff = Number(document.getElementById('staffCount').value);
+    const no_replaced = Number(document.getElementById('no_replaced').value);
+    const staffHalf = Number(document.getElementById('staffHalfCount').value);
+    const students = Number(document.getElementById('studentCount').value);
+    const accommodationRate = Number(document.getElementById('accommodationRate').value);
+    const nights = Number(document.getElementById('nights').value);
+    const cateringRate = Number(document.getElementById('cateringRate').value);
+    const registrationFee = Number(document.getElementById('registrationFee').value);
+    const shuttleRate = Number(document.getElementById('shuttleRate').value);
+
+    const nonlocalStaff = staff - no_replaced;
+
+    // Calculate in the target currency
+    const travel = nonlocalStaff * flightTicket;
+	const accommodationRate_divided_by = 1;
+    const accommodation = (nonlocalStaff - staffHalf) * accommodationRate * nights + staffHalf * accommodationRate * (nights / accommodationRate_divided_by);
+    
+    const mealNo = Number(document.getElementById('mealNo').value);
+    const catering = (staff + students) * cateringRate * nights * mealNo;
+    const localTransportRate = Number(document.getElementById('localTransportRate').value);
+    const localTransport = localTransportRate * nonlocalStaff;
+    
+    const shuttleBus = shuttleRate * nights;
+    const excursion = Number(document.getElementById('excursionFee').value);
+    const consumables = Number(document.getElementById('consumableFee').value);
+
+    const totalExpenses = travel + accommodation + catering + localTransport + shuttleBus + excursion + consumables;
+    const income = students * registrationFee;
+    const netExpense = totalExpenses - income;
+
+    const nonLocalStudentFee = registrationFee + (accommodationRate / accommodationRate_divided_by * nights);
+
+    let dealMessage = "";
+
+
+    document.getElementById('output').innerHTML = `
+      <div class="section">
+        <div class="item">✈️ <strong>Travel:</strong> ${formatCurrency(flightTicket)} × ${nonlocalStaff} = ${formatCurrency(travel)}</div>
+        <div class="item">🏨 <strong>Accommodation:</strong> Calculated with ${nonlocalStaff - staffHalf} full-stay and ${staffHalf} half-stay staff = ${formatCurrency(accommodation)}</div>
+        <div class="item">🍱 <strong>Catering:</strong> ${formatCurrency(cateringRate)} × ${mealNo} × ${staff + students} × ${nights} days = ${formatCurrency(catering)}</div>
+        <div class="item">🚕 <strong>Local Transport:</strong> ${formatCurrency(localTransportRate)} × ${nonlocalStaff} = ${formatCurrency(localTransport)}</div>
+        <div class="item">🚌 <strong>Shuttle Bus:</strong> ${formatCurrency(shuttleRate)} × ${nights} days = ${formatCurrency(shuttleBus)}</div>
+        <div class="item">🎉 <strong>Excursion:</strong> ${formatCurrency(excursion)}</div>
+        <div class="item">🧃 <strong>Consumables and others:</strong> ${formatCurrency(consumables)}</div>
+      </div>
+
+      <div class="section">
+        <div class="item">💰 <strong>Total Expenses:</strong> ${formatCurrency(totalExpenses)}</div>
+        <div class="item">🎓 <strong>Registration Income:</strong> ${formatCurrency(registrationFee)} × ${students} = ${formatCurrency(income)}</div>
+        <div class="item">📉 <strong>Net Expense:</strong> ${formatCurrency(netExpense)}</div>
+        ${dealMessage}
+      </div>
+
+      <div class="section">
+        <div style="height: 15px;"></div>
+        <div class="item"><strong>For students to pay:</strong></div>
+        <div class="item">🎓 Registration + accommodation fee per non-local student (sharing room): ${formatCurrency(registrationFee)} + (${formatCurrency(accommodationRate)} ÷ ${accommodationRate_divided_by} × ${nights}) = <strong>${formatCurrency(nonLocalStudentFee)}</strong></div>
+      </div>
+    `;
+  }
+
+  // Initialize the calculator when the page loads
+  window.onload = function() {
+    calculateBudget();
+  };
+</script>
+
+</body>
+</html>
